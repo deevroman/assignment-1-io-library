@@ -40,6 +40,15 @@ print_string:
   syscall
   ret
 
+; Переводит строку (выводит символ с кодом 0xA)
+; Params:
+;  -
+; Out:
+;  !stdout
+print_newline:
+  mov  rdi, `\n`
+  ; WARN. Next there should be an label print_char
+
 
 ; Принимает код символа и выводит его в stdout
 ; Params:
@@ -57,14 +66,22 @@ print_char:
   ret
 
 
-; Переводит строку (выводит символ с кодом 0xA)
+; Выводит знаковое 8-байтовое число в десятичном формате 
 ; Params:
-;  -
+;  rdi: Unsigned 8-byte decimal number
 ; Out:
 ;  !stdout
-print_newline:
-  mov  rdi, `\n`
-  jmp  print_char
+print_int:
+  cmp   rdi, 0
+  jge   print_uint
+
+  push  rdi
+  mov   rdi, '-'
+  call  print_char
+  pop   rdi
+  
+  neg   rdi
+  ; WARN. Next there should be an label print_uint
 
 
 ; Выводит беззнаковое 8-байтовое число в десятичном формате 
@@ -93,23 +110,6 @@ print_uint:
   call  print_string
   add   rsp, 21
   ret
-
-; Выводит знаковое 8-байтовое число в десятичном формате 
-; Params:
-;  rdi: Unsigned 8-byte decimal number
-; Out:
-;  !stdout
-print_int:
-  cmp   rdi, 0
-  jge   print_uint
-
-  push  rdi
-  mov   rdi, '-'
-  call  print_char
-  pop   rdi
-  
-  neg   rdi
-  jmp   print_uint
 
 
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
@@ -222,7 +222,7 @@ read_word:
 ; Params:
 ;  rdi: String link
 ; Out:
-;  rax: Decimal number length
+;  rax: Decimal number
 ;  rdx: Decimal number length
 ;       0 if operation failed
 parse_uint:
@@ -255,7 +255,8 @@ parse_uint:
 ; Params:
 ;  rdi: String link
 ; Out:
-;  rdx: Number length
+;  rax: Decimal number
+;  rdx: Decimal number length
 ;       0 if operation failed
 parse_int:
   xor   rax, rax
